@@ -35,22 +35,19 @@ run() {
 # Determines the config file:
 config() {
   case "$1" in
-     -) echo /dev/stdin;;
-    '') echo /usr/local/etc/superd.conf;;
-     *) echo "$1";;
+     (-) echo /dev/stdin;;
+    ('') echo /usr/local/etc/superd.conf;;
+     (*) echo "$1";;
   esac
 }
 
 # Runs commands defined in the given config file:
 startup() {
-  while read -r line; do
-    # Skip empty lines and lines starting with a hash (#):
-    [ -z "$line" ] || [ "${line#\#}" != "$line" ] && continue
-    # Run the given command line:
-    # shellcheck disable=SC2086
-    run $line
-  # Use the given config file as input:
-  done < "$1"
+  cat "$1" |
+  grep . |
+  grep -v '^#' |
+  # shellcheck disable=SC2086
+  xargs run
 }
 
 # Returns all given processes and their descendants tree as flat list:
@@ -80,7 +77,7 @@ shutdown() {
 
 # Monitors the started background processes until one of them exits:
 monitor() {
-  while true; do
+  while :; do
     for pid in $PIDS; do
       # Return if the given process is not running:
       ! kill -s 0 "$pid" > /dev/null 2>&1 && return
