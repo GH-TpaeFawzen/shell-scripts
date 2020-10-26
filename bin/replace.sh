@@ -23,7 +23,7 @@ gsub() {
   # In sed replacement strings, slash, backslash and ampersand must be escaped.
   # Multiline strings are allowed, but must escape newlines with a backslash.
   # Therefore, the last sed sub call adds a backslash to all but the last line:
-  sed "s/$1/$(echo "$2" | sed 's/[/\&]/\\&/g;$!s/$/\\/g')/g"
+  sed "s/$1/$(printf %s "$2" | sed 's/[/\&]/\\&/g;$!s/$/\\/g')/g"
 }
 
 # Global search and replace with the given search and replacement strings:
@@ -32,12 +32,13 @@ replace() {
   # The opening square bracket, slash, backslash, star and the dot.
   # Additionaly, the circumflex at the start and the dollar-sign at the end.
   # Therefore, we escape those characters in the given search string:
-  gsub "$(echo "$1" | sed 's/[[/\*.]/\\&/g;s/^^/\\&/;s/$$/\\&/')" "$2"
+  gsub "$(printf %s "$1" | sed 's/[[/\*.]/\\&/g;s/^^/\\&/;s/$$/\\&/')" "$2"
 }
 
-if [ $# = 3 ] && [ "$1" = '-r' ]; then
+case "$#x$1" in
+  (3x-r)
   shift
   gsub "$@"
-else
+  ;; (*)
   replace "$@"
-fi
+;; esac
